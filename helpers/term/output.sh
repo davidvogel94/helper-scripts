@@ -47,7 +47,7 @@ prefix_style() { _OUTPUT_PREFIX_STYLE="$@"; };
 prefix_reset() { _OUTPUT_PREFIX=''; _OUTPUT_PREFIX_STYLE="$_OUTPUT_PREFIX_STYLE_DEFAULT"; };
 set_output_column_width() { _OUTPUT_TABLE_COL_WIDTH="$1"; };
 
-show() {
+show_msg() {
   local _prefix="${_OUTPUT_PREFIX:+"$_OUTPUT_PREFIX"}";
   local _prefix_style="${_OUTPUT_PREFIX_STYLE:-$(style normal)}";
   local _cursor_ind=$((${#_prefix}+$_OUTPUT_COL));
@@ -79,7 +79,7 @@ show() {
 show_error() {
     prefix '[ERROR]';
     prefix_style red bold underline;
-    show "$@";
+    show_msg "$@";
     prefix_reset;
 }
 

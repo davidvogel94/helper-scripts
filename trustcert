@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+require(){ for f in $@; do source "$(dirname "${BASH_SOURCE[0]}")/$f"; done; };
+#*-----------------------------------------------------------------------------
+require "helpers/term/*.sh";
+
+assert_bash_min_version 4;
+#*-----------------------------------------------------------------------------
+
+main() {
+    cert_file="$1";
+    
+    if ! [ -f "$cert_file" ]; then
+        show_error "CERTIFICATE '$cert_file' NOT FOUND";
+        exit 1;
+    fi
+
+    trust_cert $1
+}
+
+
+
+
+#*-----------------------------------------------------------------------------
+
+trust_cert() {
+    _system="$(uname -s)";
+    case "$(echo "$_system" | awk '{print tolower($0)}')" in
+        linux*)
+            assert_command update-ca-certificates;
+            trust_cmd="sudo cp $cert_file /usr/share/ca-certificates && sudo update-ca-certificates";
+            ;;
+        darwin*)
+            assert_command security;
+            trust_cmd="security add-trusted-cert -p basic -p ssl $cert_file";
+            ;;
+        *)
+            show_error "Can't run this script with system: $(uname -s)";
+            exit 1;
+            ;;
+    esac
+
+
+    show_msg "$(style bold)TRUSTING CERT:$(style normal) $cert_file";
+    indent 4;
+        show_msg "$(style green)> $trust_cmd$(style 'normal')";
+    indent -4;
+
+    bash -c "$trust_cmd";
+}
+
+
+main $@;

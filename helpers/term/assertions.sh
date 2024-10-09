@@ -3,14 +3,18 @@ require(){ for f in $@; do source "$(dirname "${BASH_SOURCE[0]}")/$f"; done; };
 #*-----------------------------------------------------------------------------
 require 'output.sh';
 #*-----------------------------------------------------------------------------
+assert_command() {
+    local cmd='':
 
-interactive() {
-    arg="$(echo "$@" | awk '{ print toupper($0) }')";
-    
-    case "$arg" in
-        ON)  stty echo ;;
-        OFF) stty -echo ;;
-    esac
+    while [ "$#" -gt 0 ]; do
+        cmd="$1";
+        shift;
+
+        if ! command -v "$cmd" > /dev/null; then
+            show_error "COMMAND NOT FOUND:" "$(style bold)$cmd$(style normal)";
+            exit 1;
+        fi
+    done
 }
 
 assert_bash_min_version() {
@@ -36,5 +40,3 @@ assert_bash_min_version() {
         exit 1;
     fi
 }
-
-#*-----------------------------------------------------------------------------
