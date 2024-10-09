@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+#*-----------------------------------------------------------------------------
+__require__ \
+    'helpers/shell/output.sh' \
+    'helpers/shell/utility.sh' \
+;
+#*-----------------------------------------------------------------------------
+# prefix "[SETUP]";
+set_interactive OFF;
+#*-----------------------------------------------------------------------------
+setup_dir="$(__script_base_dir__)/setup.d";
+
+
+main() {
+    if [ "$#" -eq 0 ]; then
+        help;  
+        return 0;
+    fi
+
+    local setup_items=();
+
+    if [ "$#" -eq 1 ] && [ "$1" == '--all' ]; then
+        for path in $(find "$setup_dir" -type f -maxdepth 1 -iname "*.sh"); do
+            file="$(basename $path)";
+            setup_items+=(${file%.sh});
+        done
+    else
+        setup_items+=($@);
+    fi
+
+
+    for setup_item in ${setup_items[@]}; do
+        prefix "($setup_item)";
+        run_setup "$setup_item";
+        prefix_reset;
+    done
+
+    show_msg "$(style bold)DONE$(style normal)";
+}
+
+
+help() {
+    show_msg;
+    show_msg "$(style bold)Usage:$(style normal) $(__current_script_filename__) item1 [item2] [item3] ...";
+    show_msg "$(style bold)Usage:$(style normal) $(__current_script_filename__) --all";
+    show_msg;
+    show_msg "$(style bold)Available setup items:$(style normal)";
+
+    for f in "$(find "$setup_dir" -type f -maxdepth 1 -iname "*.sh")";  do
+        item="$(basename ${f%.sh})";
+        
+        indent 4;
+            show_msg "- $item";
+        indent -4;
+
+    done;
+
+    show_msg;
+}
+
+
+run_setup() {
+    script_file="$setup_dir/$1.sh";
+
+    show_msg "$(style bold)Setting up $setup_item...$(style normal)";
+
+    if ! [ -f "$script_file" ]; then
+        show_error "Could not find setup script: $script_file";
+        return 1;
+    fi
+
+    indent 2
+        show_msg "$(style green)> $script_file$(style normal)";
+        . "$script_file";
+    indent -2;
+}
+
+#*-----------------------------------------------------------------------------
+
+main $@;

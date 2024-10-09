@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
-require(){ for f in $@; do source "$(dirname "${BASH_SOURCE[0]}")/$f"; done; };
 #*-----------------------------------------------------------------------------
-
-require \
-  "helpers/term/*.sh" \
-  "config.d/hetty/*.sh" \
-  ;
-
+__require__ \
+  'helpers/shell/output.sh' \
+  'helpers/shell/assertions.sh' \
+  'helpers/shell/utility.sh' \
+;
+__require__ \
+  'config/hetty.config.sh' \
+;
 #*-----------------------------------------------------------------------------
 
 assert_bash_min_version 4;

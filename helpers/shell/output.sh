@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-require(){ for f in $@; do source "$(dirname "${BASH_SOURCE[0]}")/$f"; done; };
+#*-----------------------------------------------------------------------------
+# __require__ ...
 #*-----------------------------------------------------------------------------
 
 set_col() { printf "\r\033[${1}C"; };
@@ -48,7 +49,7 @@ prefix_reset() { _OUTPUT_PREFIX=''; _OUTPUT_PREFIX_STYLE="$_OUTPUT_PREFIX_STYLE_
 set_output_column_width() { _OUTPUT_TABLE_COL_WIDTH="$1"; };
 
 show_msg() {
-  local _prefix="${_OUTPUT_PREFIX:+"$_OUTPUT_PREFIX"}";
+  local _prefix="$_OUTPUT_PREFIX";
   local _prefix_style="${_OUTPUT_PREFIX_STYLE:-$(style normal)}";
   local _cursor_ind=$((${#_prefix}+$_OUTPUT_COL));
   

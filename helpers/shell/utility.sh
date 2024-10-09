@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
-require(){ for f in $@; do source "$(dirname "${BASH_SOURCE[0]}")/$f"; done; };
 #*-----------------------------------------------------------------------------
-require 'output.sh';
+__require__ \
+    'helpers/shell/output.sh' \
+;
 #*-----------------------------------------------------------------------------
 
 # * set tty interactivity on or off.
