@@ -1,0 +1,217 @@
+#!/usr/bin/env bash
+require(){ for f in $@; do source "$(dirname "${BASH_SOURCE[0]}")/$f"; done; };
+#*-----------------------------------------------------------------------------
+
+require \
+  "helpers/term/*.sh" \
+  "config.d/hetty/*.sh" \
+  ;
+
+#*-----------------------------------------------------------------------------
+
+assert_bash_min_version 4;
+interactive off;
+
+set_output_column_width 20;
+
+#*-----------------------------------------------------------------------------
+
+main() {
+  hetty $@;
+}
+
+#*-----------------------------------------------------------------------------
+
+
+# * CONFIGURE AND RUN HETTY
+hetty() {
+  # * LOCALS
+  local export_proxy_settings=false;
+  local docker_detach=false;
+  local docker_dry_run=false;
+  local docker_port="8080";
+  local container_addr_arg=":$docker_port";
+  local container_other_args=();
+
+
+  # * PARSE INPUT PARAMETERS
+  while [[ "$#" -gt 0 ]]; do
+    case "$1" in
+    # * ENVIRONMENT ARGUMENTS
+    # Export HTTP_PROXY, HTTPS_PROXY, and AWS_CA_BUNDLE variables
+    -e) ;& --export)
+      export_proxy_settings=true;
+      shift;
+    ;;
+    # Don't actually do anything
+    --dry-run) 
+      docker_dry_run=true;
+      prefix "[DRY-RUN]";
+
+      shift;
+      ;;
+
+    # * DOCKER RUN ARGUMENTS
+    # Run as a detached container
+    -d) ;& --detach)
+      docker_detach=true;
+      shift;
+      ;;
+    # Set the entrypoint manually
+    --entry-point)
+      HETTY_CONTAINER_ENTRYPOINT="$2";
+      shift; shift;
+      ;;
+    # Set the docker network to use manually
+    -n) ;& --network)
+      HETTY_NETWORK="$2"; 
+      shift; shift;
+      ;;
+    # Set the docker image to use
+    -i) ;& --image)
+      HETTY_IMAGE="$2";
+      shift; shift;
+      ;;
+    # Set the container hostname
+    --hostname)
+      HETTY_HOSTNAME="$2";
+      shift; shift;
+      ;;
+
+    # * HETTY ARGUMENTS
+    # SSL certificate on host machine to use
+    --cert)
+      HETTY_CERT="$2";
+      shift; shift;
+      ;;
+    # SSL certificate key on host machine to use
+    --key)
+      HETTY_KEY="$2";
+      shift; shift;
+      ;;
+    # Hetty data dir to mount to container
+    --data)
+      HETTY_DATA_DIR="$2";
+      shift; shift;
+      ;;
+    # Hostname/port to listen on inside the container 
+    #   (also sets container port exposure, e.g. --addr ":8443")
+    --addr)
+      container_addr_arg="$2";
+      docker_port="$(echo "$2" | awk '{split($0, array, ":"); print array[2]}')";
+      shift; shift;
+      ;;
+
+    # * OTHER CONTAINER ARGUMENTS
+    # Any other args to pass into the container entrypoint command
+    *)
+      container_other_args+=("$1");
+      shift;
+      ;;
+    esac
+  done
+
+
+  # * SHOW CONFIGURATION
+  # Output the configuration
+  echo;
+  show "$(style bold underline)CONFIGURATION$(style normal)"; 
+  
+  show;
+  indent 4;
+  [[ -f $HETTY_CERT ]] && \
+  show "$(style bold)SSL CERTIFICATE$(style normal)"    "$HETTY_CERT";
+  [[ -f $HETTY_KEY  ]] && \
+  show "$(style bold)SSL CERT KEY$(style normal)"       "$HETTY_KEY";
+  show "$(style bold)HETTY DATA STORE$(style normal)"   "$HETTY_DATA_DIR";
+  show "$(style bold)DOCKER NETWORK$(style normal)"     "$HETTY_NETWORK";
+  show "$(style bold)NETWORK HOSTNAME$(style normal)"   "$HETTY_HOSTNAME";
+  show "$(style bold)INTERNAL ADDRESS$(style normal)"   "http://$HETTY_HOSTNAME:$docker_port/"
+  show "$(style bold)EXTERNAL ADDRESS$(style normal)"   "http://${DOCKER_HOST:-localhost}:$docker_port/"; 
+  show "$(style bold)CONTAINER NAME$(style normal)"     "$HETTY_CONTAINER_NAME";
+  indent -4;
+  show; show;
+
+  if $export_proxy_settings; then
+    proxy_addr="http://${DOCKER_HOST:-localhost}:$docker_port/";
+    
+    show "$(style bold underline)EXPORTING VARIABLES$(style normal)"; 
+    show;
+    indent 4;
+    show "$(style bold)HTTP_PROXY$(style normal)"     "$proxy_addr";
+    show "$(style bold)HTTPS_PROXY$(style normal)"    "$proxy_addr";
+    show "$(style bold)AWS_CA_BUNDLE$(style normal)"  "$HETTY_CERT";
+    indent -4;
+    show; show;
+  fi
+
+  # * SET UP ENVIRONMENT
+  # Make sure data mount exists
+  [[ ! -d $HETTY_DATA_DIR ]] && mkdir -p $HETTY_DATA_DIR;
+
+  # Stop existing container if there's one already running
+  if docker container ls | grep -Ecq "\s+$HETTY_CONTAINER_NAME\s*\$"; then 
+    show "$(style bold)STOPPING EXISTING CONTAINER$(style normal)"; 
+    show; show;
+    if ! $docker_dry_run; then docker container rm -f hetty > /dev/null; fi
+  fi
+
+  # Make sure the docker network exists
+  if ! docker network ls | grep -Ecq "\s+$HETTY_NETWORK\s+"; then
+    if ! $docker_dry_run; then 
+      docker network create $HETTY_NETWORK > /dev/null;
+      show "$(style bold)DOCKER NETWORK '$HETTY_NETWORK' CREATED.$(style normal)";
+      show; show;
+    fi
+  fi
+
+  # Export proxy environment variables if called with --export
+  if ! $docker_dry_run && $export_proxy_settings; then
+    export HTTP_PROXY="$proxy_addr";
+    export HTTPS_PROXY="$proxy_addr";
+    export AWS_CA_BUNDLE="$HETTY_CERT";
+  fi
+
+  # * BUILD DOCKER COMMAND
+  local _container_ssl_path="${HETTY_CONTAINER_BASEPATH%%/}/ssl";
+  local _container_data_path="${HETTY_CONTAINER_BASEPATH%%/}/db";
+
+  local docker_cmd=(
+    "docker"
+    "run"
+    # Docker run args
+    "--rm"
+    "-h '$HETTY_HOSTNAME'"
+    "--name '$HETTY_CONTAINER_NAME'"
+    "--network '$HETTY_NETWORK'"
+    "-p '$docker_port:$docker_port'"
+    "--entrypoint '$HETTY_CONTAINER_ENTRYPOINT'"
+    $(if $docker_detach; then echo '-d'; fi)
+    $([[ -d $HETTY_DATA_DIR               ]] && echo "-v '$HETTY_DATA_DIR:$_container_data_path'")
+    $([[ -f $HETTY_CERT                   ]] && echo "-v '$HETTY_CERT:$_container_ssl_path/$(basename "$HETTY_CERT")'")
+    $([[ -f $HETTY_KEY                    ]] && echo "-v '$HETTY_KEY:$_container_ssl_path/$(basename "$HETTY_KEY")'")
+    # Image
+    "$HETTY_IMAGE"
+    # Container args
+    $([[ -f $HETTY_CERT                   ]] && echo "--cert '$_container_ssl_path/$(basename "$HETTY_CERT")'")
+    $([[ -f $HETTY_KEY                    ]] && echo "--key '$_container_ssl_path/$(basename "$HETTY_KEY")'")
+    $([[ -d $HETTY_DATA_DIR               ]] && echo "--db '$_container_data_path'")
+    $([[ ! $container_addr_arg =~ '^\s*$' ]] && echo "--addr '$container_addr_arg'")
+    $(for arg in ${container_other_args[@]}; do echo "$arg"; done;)
+  );
+
+  # Build command as string
+  local cmd_string=''; 
+  for s in ${docker_cmd[@]}; do cmd_string="${cmd_string:+"$cmd_string "}$s"; done;
+
+  # * START HETTY CONTAINER
+  if $docker_dry_run; then   
+    show "> $(style green)$cmd_string$(style normal)";
+  else 
+    bash -c "$cmd_string" > /dev/null; 
+  fi
+  echo;
+}
+
+#*-----------------------------------------------------------------------------
+main $@
