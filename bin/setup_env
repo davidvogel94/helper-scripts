@@ -46,7 +46,7 @@ help() {
     show_msg;
     show_msg "$(style bold)Available setup items:$(style normal)";
 
-    for f in "$(find "$setup_dir" -type f -maxdepth 1 -iname "*.sh")";  do
+    for f in $(find "$setup_dir" -type f -maxdepth 1 -iname "*.sh");  do
         item="$(basename ${f%.sh})";
         
         indent 4;

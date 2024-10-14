@@ -11,10 +11,12 @@ __bootstrap__() {
     local bash_env_script="$base_dir/.bash_env.sh";
 
     # Shouldn't try to make script shims if can't find the required dependencies
-    if ! [ -d $bin_dir         ]  \
-    || ! [ -f $bash_env_script ]; \
-    then
-        echo "(bootstrap) NOT FOUND: $base_dir" > /dev/stderr;
+    if ! [ -d $bin_dir ]; then
+        echo "(bootstrap) NOT FOUND: $bin_dir" > /dev/stderr;
+        return 1;
+    fi
+    if ! [ -f $bash_env_script ]; then
+        echo "(bootstrap) NOT FOUND: $bash_env_script" > /dev/stderr;
         return 1;
     fi
 
