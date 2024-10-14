@@ -31,7 +31,7 @@ main() {
         docker rm $PG_SETUP_CONTAINER > /dev/null;
     fi
     if docker volume ls | grep -Ecq "^.*\s+$PG_SETUP_VOLUME\s*$"; then
-        show_msg "Deleting volume: $PG_SETUP_CONTAINER";
+        show_msg "Deleting volume: $PG_SETUP_VOLUME";
         docker volume rm $PG_SETUP_VOLUME > /dev/null;
     fi
     
