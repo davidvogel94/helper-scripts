@@ -1,4 +1,4 @@
-
+#!/usr/bin/env bash
 # Default settings
 declare -A PG_SETUP_DEFAULTS=(
     [DUMPFILE]="$HOME/dev/database/dumps/EnterpriseStore.Dev.log"

@@ -12,24 +12,27 @@ setup_dir="$(__script_base_dir__)/setup.d";
 
 
 main() {
-    if [ "$#" -eq 0 ]; then
+    if [[ "$#" -eq 0       ]] \
+    || [[ "$1" == "--help" ]]; then
         help;  
         return 0;
     fi
 
     local setup_items=();
 
-    if [ "$#" -eq 1 ] && [ "$1" == '--all' ]; then
-        for path in $(find "$setup_dir" -type f -maxdepth 1 -iname "*.sh"); do
-            file="$(basename $path)";
-            setup_items+=(${file%.sh});
-        done
+    if [[ "$#" -eq 1      ]] \
+    && [[ "$1" == '--all' ]]; then
+        while IFS= read -r -d '' path
+        do
+            file="$(basename "$path")";
+            setup_items+=("${file%.sh}");
+        done < <(find "$setup_dir" -maxdepth 1 -type f -iname "*.sh" -print0)
     else
-        setup_items+=($@);
+        setup_items+=("$@");
     fi
 
 
-    for setup_item in ${setup_items[@]}; do
+    for setup_item in "${setup_items[@]}"; do
         prefix "($setup_item)";
         run_setup "$setup_item";
         prefix_reset;
@@ -46,14 +49,13 @@ help() {
     show_msg;
     show_msg "$(style bold)Available setup items:$(style normal)";
 
-    for f in $(find "$setup_dir" -type f -maxdepth 1 -iname "*.sh");  do
-        item="$(basename ${f%.sh})";
-        
+    while IFS= read -r -d '' f
+    do
+        item="$(basename "${f%.sh}")";
         indent 4;
             show_msg "- $item";
         indent -4;
-
-    done;
+    done < <(find "$setup_dir" -maxdepth 1 -type f -iname "*.sh" -print0);
 
     show_msg;
 }
@@ -64,17 +66,18 @@ run_setup() {
 
     show_msg "$(style bold)Setting up $setup_item...$(style normal)";
 
-    if ! [ -f "$script_file" ]; then
+    if ! [[ -f "$script_file" ]]; then
         show_error "Could not find setup script: $script_file";
         return 1;
     fi
 
     indent 2
         show_msg "$(style green)> $script_file$(style normal)";
+        # shellcheck disable=SC1090  # working on list of script files so can't add explicit directive
         . "$script_file";
     indent -2;
 }
 
 #*-----------------------------------------------------------------------------
 
-main $@;
+main "$@";

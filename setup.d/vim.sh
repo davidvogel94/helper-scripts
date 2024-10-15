@@ -6,7 +6,7 @@ __require__ \
 ;
 #*-----------------------------------------------------------------------------
 
-_VIMRC_TEMPLATE="$(__script_base_dir__)/config/template.vimrc";
+_VIMRC_TEMPLATE="$(__script_base_dir__)/config/template.vim";
 
 main() {
     clean;
@@ -33,7 +33,13 @@ clean() {
 setup() {
     show_msg "Creating folder structure ...";
 
-    mkdir -p $HOME/.vim $HOME/.vim/autoload $HOME/.vim/backup $HOME/.vim/colors $HOME/.vim/plugged;
+    mkdir -p \
+        "$HOME/.vim" \
+        "$HOME/.vim/autoload" \
+        "$HOME/.vim/backup" \
+        "$HOME/.vim/colors" \
+        "$HOME/.vim/plugged" \
+    ;
 
     show_msg "Copying .vimrc ...";
     cp "$_VIMRC_TEMPLATE" "$HOME/.vimrc";
@@ -48,4 +54,4 @@ setup() {
 
 
 #*-----------------------------------------------------------------------------
-main $@
+main "$@"

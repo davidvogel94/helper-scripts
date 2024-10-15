@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 # *******************************************************************************
 # *     Source this file in ~/.*rc to bootstrap the scripts within ./bin        *
 # *******************************************************************************
@@ -11,20 +12,20 @@ __bootstrap__() {
     local bash_env_script="$base_dir/.bash_env.sh";
 
     # Shouldn't try to make script shims if can't find the required dependencies
-    if ! [ -d $bin_dir ]; then
+    if ! [ -d "$bin_dir" ]; then
         echo "(bootstrap) NOT FOUND: $bin_dir" > /dev/stderr;
         return 1;
     fi
-    if ! [ -f $bash_env_script ]; then
+    if ! [ -f "$bash_env_script" ]; then
         echo "(bootstrap) NOT FOUND: $bash_env_script" > /dev/stderr;
         return 1;
     fi
 
-    for f in $(find "$bin_dir" -type f -maxdepth 1); do
-        # Build shim definitions for each script in the bin directory and evaluate.
-        local _name="$(basename $f)";
-        eval "$_name(){ BASH_ENV='$bash_env_script' /usr/bin/env bash $bin_dir/$_name \$@; };"
-    done;
+    while IFS='' read -r f
+    do
+        _f="$(basename "$f")";
+        eval "$_f(){ BASH_ENV='$bash_env_script' /usr/bin/env bash $bin_dir/$_f \"\$@\"; };"
+    done < <(find "$bin_dir" -maxdepth 1 -type f);
 }
 
-__bootstrap__ "$(dirname $0)";
+__bootstrap__ "$(dirname "$0")";

@@ -3,6 +3,7 @@
 # __require__ ...
 #*-----------------------------------------------------------------------------
 
+# shellcheck disable=SC2059   # This is a hack anyway
 set_col() { printf "\r\033[${1}C"; };
 
 
@@ -30,7 +31,7 @@ style() {
           shift;
       done
   };
-  printf "$(_style $@)"; 
+  printf "$(_style "$@")"; 
 };
 
 _OUTPUT_COL="${_OUTPUT_COL:-0}";
@@ -42,20 +43,20 @@ _OUTPUT_TABLE_COL_DEFAULT_WIDTH=${_OUTPUT_TABLE_COL_DEFAULT_WIDTH:-20};
 _OUTPUT_TABLE_COL_WIDTH="${_OUTPUT_TABLE_COL_WIDTH:-"$_OUTPUT_TABLE_COL_DEFAULT_WIDTH"}";
 
 
-indent() { _OUTPUT_COL="$(($_OUTPUT_COL+$1))"; };
-prefix() { _OUTPUT_PREFIX="$@"; };
-prefix_style() { _OUTPUT_PREFIX_STYLE="$@"; };
+indent() { _OUTPUT_COL="$((_OUTPUT_COL+$1))"; };
+prefix() { _OUTPUT_PREFIX="$*"; };
+prefix_style() { _OUTPUT_PREFIX_STYLE="$*"; };
 prefix_reset() { _OUTPUT_PREFIX=''; _OUTPUT_PREFIX_STYLE="$_OUTPUT_PREFIX_STYLE_DEFAULT"; };
 set_output_column_width() { _OUTPUT_TABLE_COL_WIDTH="$1"; };
 
 show_msg() {
   local _prefix="$_OUTPUT_PREFIX";
   local _prefix_style="${_OUTPUT_PREFIX_STYLE:-$(style normal)}";
-  local _cursor_ind=$((${#_prefix}+$_OUTPUT_COL));
+  local _cursor_ind=$((${#_prefix}+_OUTPUT_COL));
   
   
   if [[ $_prefix ]]; then 
-    _cursor_ind=$(($_cursor_ind+1)); # Add a single space between prefix and output if prefix is specified.
+    _cursor_ind=$((_cursor_ind+1)); # Add a single space between prefix and output if prefix is specified.
     style "$_prefix_style";
 
     printf "%s" "$_prefix";
@@ -67,9 +68,9 @@ show_msg() {
   local n=0;
   local width="$_OUTPUT_TABLE_COL_WIDTH";
   while [ $# -gt 0 ]; do
-    local _ind=$(($_cursor_ind+$n*$width));
+    local _ind=$((_cursor_ind+n*width));
     set_col $_ind;
-    n=$(($n+1));
+    n=$((n+1));
     printf "%s" "$1";
     shift;
   done;
@@ -84,5 +85,12 @@ show_error() {
     prefix_reset;
 }
 
-
+trim_output() {
+  _padding=2;
+  cols=$((COLUMNS-${#_OUTPUT_PREFIX}-_OUTPUT_COL-_padding));
+  while read -r line
+  do
+    echo "${line:0:cols}";
+  done < "${1:-/dev/stdin}"
+}
 #*-----------------------------------------------------------------------------

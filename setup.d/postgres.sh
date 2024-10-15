@@ -14,7 +14,7 @@ main() {
     prefix_style yellow bold;
     prefix "[ WARNING ]";
         show_msg "$(style yellow bold)This will delete the existing postgres container and volume$(style normal)"
-        read -p "Press Enter to continue; Ctrl+C to cancel..."; echo
+        read -r -p "Press Enter to continue; Ctrl+C to cancel..."; echo
     prefix_reset;
 
     show_msg "Setting up Postgres deployment";
@@ -26,13 +26,13 @@ main() {
 
     if docker container ls -a | grep -Ecq "^.*\s+$PG_SETUP_CONTAINER\s*$"; then 
         show_msg "Stopping container: $PG_SETUP_CONTAINER";
-        docker stop $PG_SETUP_CONTAINER > /dev/null; 
+        docker stop "$PG_SETUP_CONTAINER" > /dev/null; 
         show_msg "Deleting container: $PG_SETUP_CONTAINER";
-        docker rm $PG_SETUP_CONTAINER > /dev/null;
+        docker rm "$PG_SETUP_CONTAINER" > /dev/null;
     fi
     if docker volume ls | grep -Ecq "^.*\s+$PG_SETUP_VOLUME\s*$"; then
         show_msg "Deleting volume: $PG_SETUP_VOLUME";
-        docker volume rm $PG_SETUP_VOLUME > /dev/null;
+        docker volume rm "$PG_SETUP_VOLUME" > /dev/null;
     fi
     
     show_msg "Creating volume:" "$PG_SETUP_VOLUME";
@@ -54,7 +54,7 @@ main() {
     show_msg "Restoring dump from:" "$PG_SETUP_DUMPFILE";
 
     # give the container a chance to start and pause before massive postgres output spam
-    read -p "Press enter to continue..."
+    read -r -p "Press enter to continue..."
 
     restore_pgdump
 
@@ -65,7 +65,7 @@ restore_pgdump() {
     local dump_path="/pgdump/pgdump.log";
 
     run_pg_cmd() {
-        local psql_cmd="$@";
+        local psql_cmd="$*";
         
         docker_cmd=(
             "docker run"
@@ -89,4 +89,4 @@ restore_pgdump() {
 
 #*-----------------------------------------------------------------------------
 
-main $@
+main "$@"
