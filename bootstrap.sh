@@ -24,8 +24,9 @@ __bootstrap__() {
     while IFS='' read -r f
     do
         _f="$(basename "$f")";
-        eval "$_f(){ BASH_ENV='$bash_env_script' /usr/bin/env bash $bin_dir/$_f \"\$@\"; };"
+        eval "$_f(){ BASH_ENV='$bash_env_script' /usr/bin/env $bin_dir/$_f \"\$@\"; };"
     done < <(find "$bin_dir" -maxdepth 1 -type f);
 }
 
 __bootstrap__ "$(dirname "$0")";
+source "$(dirname "$0")/aliases.sh";
