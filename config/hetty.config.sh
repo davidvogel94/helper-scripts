@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+
+# shellcheck disable=SC2034
+
 #*-----------------------------------------------------------------------------
 HETTY_NETWORK='mitm';
 HETTY_CONTAINER_NAME='hetty';

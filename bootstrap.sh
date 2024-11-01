@@ -29,4 +29,9 @@ __bootstrap__() {
 }
 
 __bootstrap__ "$(dirname "$0")";
+
+# File for common environment vars
+source "$(dirname "$0")/environment.sh";
+
+# File for common aliases
 source "$(dirname "$0")/aliases.sh";

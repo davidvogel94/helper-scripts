@@ -2,7 +2,6 @@
 #*-----------------------------------------------------------------------------
 __require__ \
     "helpers/shell/output.sh" \
-    "helpers/fs/backups.sh" \
 ;
 
 __require__ \
@@ -21,14 +20,14 @@ setup_extensions() {
         show_msg "- $ext"
         indent 2;
             local output_style; output_style="$(style green)";
-            
-            output="$(code --install-extension "$ext")"; 
+
+            output="$(code --install-extension "$ext")";
             _rc="$?";
-            
+
             if [[ "$_rc" -ne 0 ]]; then output_style="$(style red)"; fi
 
             last_line="$(echo "$output" | tail -n 1 | trim_output)";
-            
+
             show_msg "${output_style}${last_line}$(style normal)";
         indent -2;
     done;

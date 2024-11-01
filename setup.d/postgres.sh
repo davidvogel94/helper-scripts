@@ -18,15 +18,15 @@ main() {
     prefix_reset;
 
     show_msg "Setting up Postgres deployment";
-    
+
     if ! docker network ls | grep -Ecq "^.*\s+$PG_SETUP_NETWORK\s+.*$"; then
         show_msg "Creating network:" "$PG_SETUP_NETWORK";
         docker network create "$PG_SETUP_NETWORK";
     fi
 
-    if docker container ls -a | grep -Ecq "^.*\s+$PG_SETUP_CONTAINER\s*$"; then 
+    if docker container ls -a | grep -Ecq "^.*\s+$PG_SETUP_CONTAINER\s*$"; then
         show_msg "Stopping container: $PG_SETUP_CONTAINER";
-        docker stop "$PG_SETUP_CONTAINER" > /dev/null; 
+        docker stop "$PG_SETUP_CONTAINER" > /dev/null;
         show_msg "Deleting container: $PG_SETUP_CONTAINER";
         docker rm "$PG_SETUP_CONTAINER" > /dev/null;
     fi
@@ -34,7 +34,7 @@ main() {
         show_msg "Deleting volume: $PG_SETUP_VOLUME";
         docker volume rm "$PG_SETUP_VOLUME" > /dev/null;
     fi
-    
+
     show_msg "Creating volume:" "$PG_SETUP_VOLUME";
     docker volume create "$PG_SETUP_VOLUME" > /dev/null;
 
@@ -66,23 +66,23 @@ restore_pgdump() {
 
     run_pg_cmd() {
         local psql_cmd="$*";
-        
+
         docker_cmd=(
             "docker run"
             "--rm"
             "--network '$PG_SETUP_NETWORK'"
             "-v '$PG_SETUP_DUMPFILE:$dump_path'"
-            "-e 'PGPASSWORD=$PG_SETUP_ROOT_PASSWORD'" \
-            "$PG_SETUP_IMAGE" \
-            "psql -h '$PG_SETUP_CONTAINER' -U postgres postgres $psql_cmd" \
+            "-e 'PGPASSWORD=$PG_SETUP_ROOT_PASSWORD'"
+            "$PG_SETUP_IMAGE"
+            "psql -h '$PG_SETUP_CONTAINER' -U postgres postgres $psql_cmd"
         );
 
         cmd_str=""; for c in "${docker_cmd[@]}"; do cmd_str="${cmd_str:+"$cmd_str "}$c"; done;
-        
+
         show_msg "$(style green)> $cmd_str$(style normal)";
         eval "$cmd_str";
     }
-    
+
     run_pg_cmd "-c \"CREATE USER easuser WITH LOGIN PASSWORD '$PG_SETUP_PASSWORD' NOSUPERUSER INHERIT NOCREATEDB NOCREATEROLE NOREPLICATION;\"";
     run_pg_cmd "-f $dump_path";
 }
