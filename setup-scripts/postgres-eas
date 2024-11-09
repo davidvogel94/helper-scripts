@@ -6,7 +6,7 @@ __require__ \
 ;
 
 __require__ \
-    "config/postgres.config.sh" \
+    "settings/postgres.config.sh" \
 ;
 #*-----------------------------------------------------------------------------
 

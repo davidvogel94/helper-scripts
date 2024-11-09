@@ -5,16 +5,31 @@ __require__ \
     'helpers/shell/utility.sh' \
 ;
 #*-----------------------------------------------------------------------------
-# prefix "[SETUP]";
 set_interactive OFF;
-#*-----------------------------------------------------------------------------
-setup_dir="$(__script_base_dir__)/setup.d";
 
+#*-----------------------------------------------------------------------------
+setup_dir="$(__script_base_dir__)/setup-scripts";
+
+_list_setup_scripts() { find "$setup_dir" "$setup_dir/$(uname -s)" -maxdepth 1 -type f -print0; };
+_get_setup_script() {
+  matches=("$(find "$setup_dir" "$setup_dir/$(uname -s)" -maxdepth 1 -type f -name "$1")");
+  if [[ "${#matches[@]}" -gt 1 ]]; then
+    show_error "Found more than one match for: $1.";
+    for match in "${matches[@]}"; do show_error "  - $match"; done;
+    show_error "Running first entry: ${matches[0]}";
+  fi
+  if [[ "${#matches[@]}" -lt 1 ]]; then
+    show_error "No matching scripts found for input: $1";
+    return 1;
+  fi
+
+  echo -n "${matches[0]}";
+}
 
 main() {
     if [[ "$#" -eq 0       ]] \
     || [[ "$1" == "--help" ]]; then
-        help;  
+        help;
         return 0;
     fi
 
@@ -26,7 +41,7 @@ main() {
         do
             file="$(basename "$path")";
             setup_items+=("${file%.sh}");
-        done < <(find "$setup_dir" -maxdepth 1 -type f -iname "*.sh" -print0)
+        done < <(list_setup_scripts)
     else
         setup_items+=("$@");
     fi
@@ -55,14 +70,15 @@ help() {
         indent 4;
             show_msg "- $item";
         indent -4;
-    done < <(find "$setup_dir" -maxdepth 1 -type f -iname "*.sh" -print0);
+    done < <(_list_setup_scripts);
 
     show_msg;
 }
 
 
 run_setup() {
-    script_file="$setup_dir/$1.sh";
+    # script_file="$setup_dir/$1.sh";
+    script_file="$(_get_setup_script "$1")";
 
     show_msg "$(style bold)Setting up $setup_item...$(style normal)";
 
@@ -73,8 +89,7 @@ run_setup() {
 
     indent 2
         show_msg "$(style green)> $script_file$(style normal)";
-        # shellcheck disable=SC1090  # working on list of script files so can't add explicit directive
-        . "$script_file";
+        $script_file;
     indent -2;
 }
 

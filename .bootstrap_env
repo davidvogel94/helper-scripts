@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# *******************************************************************************
+# *           BOOTSTRAP COMMON ENVIRONMENT THAT ALL SCRIPTS CAN USE.            *
+# *******************************************************************************
+shopt -s checkwinsize
+shopt -s extglob
+
+# * RETURN BASE DIRECTORY OF THIS REPOSITORY.
+__script_base_dir__() { dirname "${BASH_SOURCE[0]}"; };
+
+
+# * GET THE FILE NAME OF THE CURRENTLY EXECUTING SCRIPT
+__current_script_filename__() { basename "${BASH_SOURCE[0]}"; };
+
+
+# * SOURCE HELPER SCRIPTS, CONFIGURATION SCRIPTS ETC. USING PATHS RELATIVE TO THE BASE SCRIPT DIRECTORY
+# shellcheck disable=SC1090
+__require__() { for f in "$@"; do source "$(__script_base_dir__)/$f"; done; };

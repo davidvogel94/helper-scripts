@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+
+__require__ \
+  "helpers/shell/output.sh" \
+  "helpers/shell/assertions.sh" \
+;
+
+# Install Homebrew if not already installed
+if ! [[ -f /home/linuxbrew/.linuxbrew/bin/brew ]]; then
+  bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)";
+
+  # shellcheck disable=SC2016
+  {
+    echo;
+    echo '# Init homebrew';
+    echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"';
+    echo;
+  } >> "$HOME/.${SHELL##*/}rc";
+
+  eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)";
+fi
+
+assert_command brew;
+
+show_msg "Installing rust/cargo..."
+brew install -q rust;
+if [[ ! $PATH =~ ^(.*:)?$HOME\/.cargo\/bin(:.*)?$ ]]; then
+  show_error "Warning: PATH does not contain the cargo bin folder."
+  show_error "Run the following:"
+  show_error "    echo 'export PATH=\"\$PATH:$HOME/.cargo/bin\";' >> ~/.${SHELL##*/}rc && source ~/.${SHELL##*/}rc";
+  # Export cargo bin into current session so script can keep going.
+  export PATH="$PATH:$HOME/.cargo/bin";
+fi
+
+assert_command cargo;
+
+
+# Use cargo to install xremap
+show_msg "Installing xremap..."
+cargo install -q xremap --features gnome

@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+
+__require__ \
+  "helpers/shell/output.sh" \
+  "helpers/shell/assertions.sh" \
+;
+
+assert_command xremap systemctl; # install per https://github.com/xremap/xremap
+
+if [ -f "$HOME/.xremap.conf.yml" ]; then rm -f "$HOME/.xremap.conf.yml"; fi
+cp "$(__script_base_dir__)/settings/xremap.yml" "$HOME/.xremap.conf.yml";
+
+systemd_service_unit_file=\
+"[Unit]
+Description=xremap service
+After=graphical.target
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+ExecStart=$HOME/.cargo/bin/xremap $HOME/.xremap.conf.yml
+
+[Install]
+WantedBy=default.target
+";
+
+echo "$systemd_service_unit_file" | sudo tee /etc/systemd/user/xremap.service > /dev/null;
+
+systemctl --user daemon-reload;
+systemctl --user enable --now xremap.service;

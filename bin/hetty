@@ -6,7 +6,7 @@ __require__ \
   'helpers/shell/utility.sh' \
 ;
 __require__ \
-  'config/hetty.config.sh' \
+  'settings/hetty.config.sh' \
 ;
 #*-----------------------------------------------------------------------------
 
@@ -45,7 +45,7 @@ hetty() {
       shift;
     ;;
     # Don't actually do anything
-    --dry-run) 
+    --dry-run)
       docker_dry_run=true;
       prefix "[DRY-RUN]";
 
@@ -65,7 +65,7 @@ hetty() {
       ;;
     # Set the docker network to use manually
     -n) ;& --network)
-      HETTY_NETWORK="$2"; 
+      HETTY_NETWORK="$2";
       shift; shift;
       ;;
     # Set the docker image to use
@@ -95,7 +95,7 @@ hetty() {
       HETTY_DATA_DIR="$2";
       shift; shift;
       ;;
-    # Hostname/port to listen on inside the container 
+    # Hostname/port to listen on inside the container
     #   (also sets container port exposure, e.g. --addr ":8443")
     --addr)
       container_addr_arg="$2";
@@ -116,8 +116,8 @@ hetty() {
   # * show_msg CONFIGURATION
   # Output the configuration
   echo;
-  show_msg "$(style bold underline)CONFIGURATION$(style normal)"; 
-  
+  show_msg "$(style bold underline)CONFIGURATION$(style normal)";
+
   show_msg;
   indent 4;
     [[ -f $HETTY_CERT ]] && \
@@ -128,15 +128,15 @@ hetty() {
     show_msg "$(style bold)DOCKER NETWORK$(style normal)"     "$HETTY_NETWORK";
     show_msg "$(style bold)NETWORK HOSTNAME$(style normal)"   "$HETTY_HOSTNAME";
     show_msg "$(style bold)INTERNAL ADDRESS$(style normal)"   "http://$HETTY_HOSTNAME:$docker_port/"
-    show_msg "$(style bold)EXTERNAL ADDRESS$(style normal)"   "http://${DOCKER_HOST:-localhost}:$docker_port/"; 
+    show_msg "$(style bold)EXTERNAL ADDRESS$(style normal)"   "http://${DOCKER_HOST:-localhost}:$docker_port/";
     show_msg "$(style bold)CONTAINER NAME$(style normal)"     "$HETTY_CONTAINER_NAME";
   indent -4;
   show_msg; show_msg;
 
   if $export_proxy_settings; then
     proxy_addr="http://${DOCKER_HOST:-localhost}:$docker_port/";
-    
-    show_msg "$(style bold underline)EXPORTING VARIABLES$(style normal)"; 
+
+    show_msg "$(style bold underline)EXPORTING VARIABLES$(style normal)";
     show_msg;
     indent 4;
       show_msg "$(style bold)HTTP_PROXY$(style normal)"     "$proxy_addr";
@@ -151,15 +151,15 @@ hetty() {
   [[ ! -d $HETTY_DATA_DIR ]] && mkdir -p $HETTY_DATA_DIR;
 
   # Stop existing container if there's one already running
-  if docker container ls | grep -Ecq "\s+$HETTY_CONTAINER_NAME\s*\$"; then 
-    show_msg "$(style bold)STOPPING EXISTING CONTAINER$(style normal)"; 
+  if docker container ls | grep -Ecq "\s+$HETTY_CONTAINER_NAME\s*\$"; then
+    show_msg "$(style bold)STOPPING EXISTING CONTAINER$(style normal)";
     show_msg; show_msg;
     if ! $docker_dry_run; then docker container rm -f hetty > /dev/null; fi
   fi
 
   # Make sure the docker network exists
   if ! docker network ls | grep -Ecq "\s+$HETTY_NETWORK\s+"; then
-    if ! $docker_dry_run; then 
+    if ! $docker_dry_run; then
       docker network create $HETTY_NETWORK > /dev/null;
       show_msg "$(style bold)DOCKER NETWORK '$HETTY_NETWORK' CREATED.$(style normal)";
       show_msg; show_msg;
@@ -202,14 +202,14 @@ hetty() {
   );
 
   # Build command as string
-  local cmd_string=''; 
+  local cmd_string='';
   for s in ${docker_cmd[@]}; do cmd_string="${cmd_string:+"$cmd_string "}$s"; done;
 
   # * START HETTY CONTAINER
-  if $docker_dry_run; then   
+  if $docker_dry_run; then
     show_msg "> $(style green)$cmd_string$(style normal)";
-  else 
-    bash -c "$cmd_string" > /dev/null; 
+  else
+    bash -c "$cmd_string" > /dev/null;
   fi
   echo;
 }

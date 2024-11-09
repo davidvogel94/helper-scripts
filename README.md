@@ -5,7 +5,7 @@ Collection of helper scripts and scratches that I've made over time to assist wi
 ## Setup
 
 ```sh
-CLONE_PATH="$HOME/devscripts"
+CLONE_PATH="$HOME/scripts"
 SHELLRC="$HOME/.${SHELL##*/}rc";
 
 git clone https://github.com/davidvogel94/helper-scripts.git $CLONE_PATH
@@ -20,16 +20,16 @@ Having sourced `bootstrap.sh`, all scripts in [./bin/](./bin) have been shimmed 
 e.g.:
 
 - `hetty`
-- `setup_env`
+- `reconfigure`
 - `trustcert`
 
 ### setup_env
 
-This script is a wrapper for environment setup scripts contained within [./setup.d/](./setup.d/). E.g.:
+This script is a wrapper for environment setup scripts contained within [./setup-scripts/](./setup-scripts/). E.g.:
 
 ```sh
-setup_env vim postgres
-setup_env postgres
-setup_env --all
+reconfigure vim vscode
+reconfigure postgres-eas
+reconfigure --all
 ```
  

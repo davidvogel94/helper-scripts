@@ -1,0 +1,45 @@
+# modmap:
+#   - name: Global
+#     remap:
+#       # CapsLock/Ctrl_L -> Esc
+#       CapsLock: Esc
+#       Ctrl_L: Esc
+
+#       # HHKB: [Alt_L] [Muhenkan] [Space] [Henkan] [KatakanaHiragana]
+#       Alt_L: Ctrl_R # for Ctrl+Click
+#       Muhenkan: Ctrl_L
+#       Henkan: Shift_L
+
+shared:
+  terminals: &terminals
+    - org.gnome.Terminal
+
+keymap:
+  - name: Global
+    application:
+      not: []
+    remap:
+      Super-f: Control-f
+      Super-w: Control-w
+      Super-x: Control-x
+      Super-z: Control-z
+      Super-Shift-z: Control-y
+      Super-s: Control-s
+      Super-a: Control-a
+      Super-t: Control-t
+      Super-n: Control-n
+      Super-Shift-p: Control-Shift-p
+
+  - name: Mac-like Copy & Paste (Terminal)
+    application:
+      only: *terminals
+    remap:
+      Super-c: Control-Shift-c
+      Super-v: Control-Shift-v
+
+  - name: Mac-like Copy & Paste
+    application:
+      not: *terminals
+    remap:
+      Super-c: Control-c
+      Super-v: Control-v

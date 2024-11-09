@@ -5,7 +5,7 @@ __require__ \
 ;
 
 __require__ \
-    "config/vscode.config.sh" \
+    "settings/vscode.config.sh" \
 ;
 #*-----------------------------------------------------------------------------
 

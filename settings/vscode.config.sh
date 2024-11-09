@@ -4,7 +4,7 @@ VSCODE_SETUP_DEFAULT_EXTENSIONS=(
     # Editor
     "vscodevim.vim"
     "EditorConfig.EditorConfig"
-    
+
     # Themes
     "EdwinSulaiman.jetbrains-rider-dark-theme"
 
@@ -33,7 +33,6 @@ VSCODE_SETUP_DEFAULT_EXTENSIONS=(
     "ms-vscode.powershell"
 
     # Python
-
     "KevinRose.vsc-python-indent"
 
     # .NET / C# Development

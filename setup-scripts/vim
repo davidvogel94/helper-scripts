@@ -6,7 +6,7 @@ __require__ \
 ;
 #*-----------------------------------------------------------------------------
 
-_VIMRC_TEMPLATE="$(__script_base_dir__)/config/template.vim";
+_VIMRC_TEMPLATE="$(__script_base_dir__)/settings/vimrc-template.vim";
 
 main() {
     clean;
